@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import time
 
 
 class AlphaVantageExtract:
@@ -25,15 +26,12 @@ class AlphaVantageExtract:
         self.queryURL = self.baseURL + f'function={self.functionMapping.get(timeseriestype)}&symbol={ticker}&outputsize={outputsize}&apikey={self.apiKey}'
 
 
-        
-
     def request_kline_data(self, timeseriestype, ticker, outputsize):
         '''
         Requests kline data in json and returns the json response
         '''
         self.create_query_url(timeseriestype, ticker, outputsize)
-        self.data = requests.get(self.queryURL).json()
-        
+        self.data = requests.get(self.queryURL).json()        
 
 
     def parse_kline_data(self, timeseriestype, ticker, outputsize):
@@ -41,8 +39,8 @@ class AlphaVantageExtract:
         Parses the OHLCV data out of the json response and stores into pandas dataframe
         '''
         data = []
+        self.request_kline_data(timeseriestype, ticker, outputsize) 
 
-        self.request_kline_data(timeseriestype, ticker, outputsize)       
         for key in self.data.keys():
             if key != 'Meta Data':
                 for date in self.data[key].keys():
@@ -55,13 +53,27 @@ class AlphaVantageExtract:
         data = data.sort_values(by='Date')
         return data
 
-    def download_data(self, timeseriestype, ticker, outputsize):
+    def download_data(self, timeseriestype, ticker, outputsize, folder=None):
         ''' 
         Download OHLCV data for stocks and store into csv
         '''
         data = self.parse_kline_data(timeseriestype, ticker, outputsize)
-        
-        data.to_csv(f'raw/{ticker}_{timeseriestype}.csv')
+        if folder:
+            data.to_csv(f'{folder}/{ticker}_{timeseriestype}.csv')
+        else:
+            data.to_csv(f'{ticker}_{timeseriestype}.csv')
+
+    def download_multidata(self, timeseriestype, tickers, outputsize, folder=None):
+
+        for i, ticker in enumerate(tickers):
+            if i != 0 and i % 5 == 0:
+                print('API Limit of 5 calls per minute.. Waiting 60 seconds')
+                time.sleep(60)
+            self.download_data('daily', ticker, 'full', 'raw')
+            print(f"Downloaded ticker {i+1} of {len(tickers)}")
+
+
+
 
                    
 
