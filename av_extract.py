@@ -22,7 +22,7 @@ class AlphaVantageExtract:
         Formats the query url string for KLINE data given the parameters. 
         '''
 
-        self.queryURL = self.baseURL + f'function={self.functionMapping.get(timeseriestype)}&symbol={ticker}&apikey={self.apiKey}'
+        self.queryURL = self.baseURL + f'function={self.functionMapping.get(timeseriestype)}&symbol={ticker}&outputsize={outputsize}&apikey={self.apiKey}'
 
 
         
@@ -52,7 +52,17 @@ class AlphaVantageExtract:
                     data.append(curr_date)
         
         data = pd.DataFrame(data, columns= ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
+        data = data.sort_values(by='Date')
         return data
+
+    def download_data(self, timeseriestype, ticker, outputsize):
+        ''' 
+        Download OHLCV data for stocks and store into csv
+        '''
+        data = self.parse_kline_data(timeseriestype, ticker, outputsize)
+        
+        data.to_csv(f'raw/{ticker}_{timeseriestype}.csv')
+
                    
 
 
