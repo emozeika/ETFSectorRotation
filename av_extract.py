@@ -82,10 +82,4 @@ class AlphaVantageExtract:
 
 
 
-    def request_data(self, timeseriestype, ticker, outputsize):
-        ''' 
-        Wrapper function to handle different data requests. KLINE, Fundemental, Indicators, etc...
-
-        '''
-
 
